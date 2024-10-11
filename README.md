@@ -4,27 +4,25 @@ Python Programming Assignment1  (Spring 2023)
 
 ## Project Overview
 
-This project is a stock data analysis system designed to collect, analyze, and predict stock prices for A-share listed companies. Using web crawler technology, the system gathers various stock-related data such as historical stock prices, company profiles, financial indicators, and institutional forecasts. The data is used to compute technical indicators like KDJ and Bollinger Bands (BOLL), which assist in visualizing and predicting stock price trends using deep learning models like LSTM.
+This project is a **Stock Data Analysis System** that collects, analyzes, and predicts stock data for A-share listed companies using web crawlers and machine learning techniques. The project includes functionalities for collecting historical stock prices, company profiles, financial data, and institutional forecasts. It also computes various technical indicators like Moving Averages (MA), Bollinger Bands (BOLL), and KDJ, and offers stock price trend predictions using deep learning models like LSTM.
 <img width="816" alt="10f613a6952fd6bab21fe8b1635b560" src="https://github.com/user-attachments/assets/543c0711-a9c8-438b-be51-15fc3640284c">
 ## Features
 
 ### 1. **Data Collection (Web Crawlers)**
-
-The project uses Python-based web crawlers to collect the following data from financial websites:
-
-- **Historical K-line data** of stocks
-- **Company profiles** for listed companies
-- **Financial statement data**
-- **Institutional forecast data** from major financial institutions
+   - Collects real-time stock data, including:
+     - Historical stock K-line data
+     - Company profiles
+     - Financial statement data
+     - Institutional forecasts
+   - Data is fetched from financial websites using Python web crawlers.
 
 ### 2. **Quantitative Calculation of Technical Indicators**
+The system uses `pandas` and `numpy` to calculate stock technical indicators such as:
 
-Using Python libraries such as `pandas` and `numpy`, the system calculates key stock technical indicators:
-
-- **Moving Average (MA)**
-- **Bollinger Bands (BOLL)**
-- **KDJ (Stochastic Oscillator)**
-- **MACD (Moving Average Convergence Divergence)**
+- Moving Average (MA)
+- Bollinger Bands (BOLL)
+- KDJ (Stochastic Oscillator)
+- MACD (Moving Average Convergence Divergence)
 
 ### 3. **Data Visualization**
 
@@ -35,38 +33,138 @@ The project implements data visualization through:
 
 ### 4. **Stock Price Prediction**
 
-Using deep learning algorithms, the system provides stock price prediction features:
-
-- **Recurrent Neural Networks (RNNs)** are used, specifically an **LSTM** model, to predict stock price trends based on historical data.
-
-### 5. **Stock System Module**
-
-- **Real-time Stock Data Acquisition:** Real-time data fetching for analysis and prediction based on input stock codes.
-- **Stock Prediction with LSTM:** Leveraging LSTM for time-series forecasting of stock prices.
-- **Comparative Analysis of Multiple Stocks:** Perform side-by-side analysis of different stocks.
-- **Market Visualization:** Clear visualization of stock movements and technical analysis.
-- **Stock Portfolio Investment Advice:** Provide investment recommendations based on trends and analyses.
-- **Historical Trend Visualization:** Present the stock's historical performance graphically for better insights.
+   - Uses Long Short-Term Memory (LSTM) neural networks from `tensorflow` for time-series analysis to predict stock price trends.
+   - Allows comparative analysis of multiple stocks and offers stock portfolio investment suggestions.
 
 ## System Modules
 
 ### 1. **User Module**
 
-- **User Registration:** New users can register an account.
-- **User Login:** Registered users can log in to access features.
-- **Password Retrieval:** Recover forgotten passwords via the system.
-- **Profile Management:** Modify basic account information.
+   - **User Registration:** Allows new users to register an account.
+   - **User Login:** Supports login for registered users.
+   - **Password Retrieval:** Provides password reset functionality.
+   - **Profile Management:** Allows users to update their profile information.
 
 ### 2. **Stock System Module**
 
-- **Real-time Stock Data Acquisition:** Fetch real-time stock data for any stock code provided by the user.
-- **Stock Prediction Using LSTM:** Predict future stock prices using the LSTM model based on historical market data.
-- **Comparative Analysis of Multiple Stocks:** Perform analysis across different stocks and compare trends and predictions.
-- **Market Visualization:** Visual representation of stock performance using Echarts.
-- **Stock Portfolio Investment Advice:** Offer investment strategy suggestions based on trends and performance.
-- **Historical Stock Trend Visualization:** Display graphical trends over time for stock price movements.
+   - **Real-time Stock Data Acquisition:** Fetches real-time data for the entered stock code.
+   - **Stock Prediction using LSTM:** Predicts stock trends based on historical data using an LSTM model.
+   - **Comparative Analysis of Multiple Stocks:** Enables comparison of various stocks for trend analysis.
+   - **Market Visualization:** Offers graphical representation of stock trends and technical analysis.
+   - **Stock Portfolio Investment Advice:** Provides suggestions for portfolio optimization based on analysis.
+   - **Historical Stock Trend Visualization:** Visualizes historical stock data trends.
 
+## Installation and Setup
 
+### 1. **Pre-requisites**
+
+   - Python 3.8+
+   - Anaconda (recommended for managing the environment)
+
+### 2. **Installation**
+
+1. Clone the repository:
+
+   ```bash
+   git https://github.com/lxy0068/Stock-quantitative-analysis-and-visualization-platform.git
+   cd Stock-quantitative-analysis-and-visualization-platform
+   ```
+
+2. Create a new virtual environment using conda (recommended):
+
+   ```bash
+   conda create -n StockEnv python=3.9
+   conda activate StockEnv
+   ```
+
+3. Install the required dependencies by running the following command:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+   The dependencies include:
+
+   ```txt
+   pandas==1.5.3
+   numpy<2
+   requests==2.27.1
+   flask
+   tensorflow==2.11.0
+   scikit-learn
+   tqdm
+   ```
+
+4. Set up front-end dependencies and ensure your environment supports visualization (e.g., `echarts`).
+
+### 3. **Running the Application**
+
+- To start the Flask web application, navigate to the root folder and run:
+
+  ```bash
+  python app.py
+  ```
+
+- The application will be accessible at `http://127.0.0.1:5000`.
+
+## Usage Instructions
+
+### 1. **Register/Login**
+
+   - Users can register an account and log in to access stock analysis features.
+
+### 2. **Stock Data Analysis**
+
+   - Enter a stock code to fetch real-time data.
+   - Visualize stock trends and technical indicators such as MA, BOLL, KDJ, and MACD.
+
+### 3. **Stock Price Prediction**
+
+   - Input historical data for a stock to receive a prediction of future price trends using the LSTM model.
+
+### 4. **Comparative Analysis**
+
+   - Analyze multiple stocks simultaneously for better decision-making.
+
+### 5. **Investment Advice**
+
+   - Receive stock portfolio recommendations based on technical analysis and predictions.
+
+## Project Structure
+
+```plaintext
+stock-analysis-system/
+│
+├── README.md                # Project documentation
+├── requirements.txt         # List of dependencies
+├── user_info.db             # User information database
+├── analysis_util.py         # Utility functions for data analysis
+├── util.py                  # General utility functions
+├── config.py                # Configuration settings
+├── stock_data_crawler.py     # Script for web crawling stock data
+├── app.py                   # Flask application for the web server
+├── service/                 # Backend service modules
+│   ├── east_money_service.py
+│   └── ts_service.py
+├── spider/                  # Web scraping scripts and modules
+│   ├── fund/
+│   │   ├── fund_history_price_spider.py
+│   │   ├── fund_realtime_price.py
+│   │   └── search.py
+│   └── stock/
+│       ├── run_fund_history_spider.py
+│       └── run_stock_history_spider.py
+├── static/                  # Static files (CSS, JavaScript, images)
+│   ├── css/
+│   ├── img/
+│   ├── js/
+│   └── vendor/
+├── templates/               # HTML templates for rendering web pages
+└── .idea/                   # PyCharm project settings
+```
+## License
+
+This project is licensed under the MIT License.
 
 ## Function demonstration
 ### Main interface
@@ -100,7 +198,3 @@ By entering the stock code and manually debugging the model parameters, the best
 ### Quantitative analysis of stock yield and stock diagnosis
 ![image](https://github.com/user-attachments/assets/05ef5fb4-7093-4e44-8277-5201f7cf4608)
 ![image](https://github.com/user-attachments/assets/24082343-b769-4c2c-92de-d2b857727ea9)
-
-## License
-
-This project is licensed under the MIT License.
