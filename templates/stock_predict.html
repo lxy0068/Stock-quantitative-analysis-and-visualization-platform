@@ -1,0 +1,162 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <script src="../static/js/jquery.min.js" type="text/javascript" charset='utf-8'></script>
+    <script src="../static/js/echarts.js" charset='utf-8'></script>
+
+    <script type="text/javascript">
+
+        // 初始化界面
+        $(function () {
+            $('#li_1').attr('class', '');
+            $('#li_2').attr('class', '');
+            $('#li_3').attr('class', '');
+            $('#li_4').attr('class', '');
+            $('#li_5').attr('class', 'active');
+
+            // 判断是否登录
+            $.get('http://127.0.0.1:5000/check_login', {},
+                function (data) {
+                    console.log(data);
+                    if (data['login'] === false) {
+                        window.location.href = '/'
+                    }
+                }
+            );
+
+            $('#submit').click(function (args) {
+                $('#info').text('模型正在训练，请勿跳转页面。。。');
+                const stock_code = $('#stock_code').val();
+                const look_back = $('#look_back').val();
+                const test_ratio = $('#test_ratio').val();
+                const train_epochs = $('#train_epochs').val();
+
+                $.get('http://127.0.0.1:5000/predict_stock_price/' + stock_code + '/' + look_back + '/' + test_ratio + '/' + train_epochs, {},
+                    function (data) {
+                        $('#info').text('');
+                        // 基于准备好的dom，初始化echarts实例
+                        var dom = document.getElementById("main");
+                        var myChart = echarts.init(dom);
+
+                        var add_predict = [];
+                        for (var i = 0; i < data['add_predict'].length; i++) {
+                            add_predict.push(data['add_predict'][i].toFixed(2))
+                        }
+                        var option = {
+                            tooltip: {
+                                trigger: 'axis',
+                                position: function (pt) {
+                                    return [pt[0], '10%'];
+                                }
+                            },
+                            title: {
+                                left: 'center',
+                                text: '股票代码为 ' + stock_code + ' 的预测结果（绿色为历史价格，红色为预测价格），预测绝对误差' + data['error'].toFixed(2),
+                            },
+                            toolbox: {
+                                feature: {
+                                    dataZoom: {
+                                        yAxisIndex: 'none'
+                                    },
+                                    restore: {},
+                                    saveAsImage: {}
+                                }
+                            },
+                            xAxis: {
+                                type: 'category',
+                                boundaryGap: false,
+                                data: data['all_time']
+                            },
+                            yAxis: {
+                                type: 'value',
+                                boundaryGap: [0, '100%']
+                            },
+                            dataZoom: [{
+                                type: 'inside',
+                                start: 0,
+                                end: 100
+                            }, {
+                                start: 0,
+                                end: 100,
+                                handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                                handleSize: '80%',
+                                handleStyle: {
+                                    color: '#fff',
+                                    shadowBlur: 3,
+                                    shadowColor: 'rgba(0, 0, 0, 0.6)',
+                                    shadowOffsetX: 2,
+                                    shadowOffsetY: 2
+                                }
+                            }],
+                            series: [
+                                {
+                                    name: '预测价格',
+                                    type: 'line',
+                                    smooth: true,
+                                    symbol: 'none',
+                                    lineStyle: {
+                                        width: 4
+                                    },
+                                    sampling: 'average',
+                                    itemStyle: {
+                                        color: '#fe6673'
+                                    },
+                                    data: add_predict
+                                },
+                                {
+                                    name: '实际价格',
+                                    type: 'line',
+                                    smooth: true,
+                                    symbol: 'none',
+                                    lineStyle: {
+                                        width: 4
+                                    },
+                                    sampling: 'average',
+                                    itemStyle: {
+                                        color: '#2ae0c8'
+                                    },
+                                    data: data['all_data']
+                                }
+                            ]
+                        };
+                        if (option && typeof option === "object") {
+                            myChart.setOption(option, true);
+                        }
+
+                    }
+                );
+            });
+
+        });
+    </script>
+
+    <!--右边展示-->
+    <div class="col-sm-12 main" style="margin-top: 80px;">
+        <div class="row" style="margin-left: 50px; font-size: 20px;">
+            <h3 class="page-header">基于 LSTM 神经网络的股票价格预测</h3>
+            <div class="col-sm-12" style="margin-bottom: 20px;">
+                <span>股票代码：</span>
+                <input id="stock_code" style="width: 100px; height: 30px;" placeholder="000001"/>
+                <b style="margin-left: 20px;">注意：需要调试模型参数，以达到最佳预测效果。</b>
+            </div>
+        </div>
+        <div class="row" style="margin-left: 50px; font-size: 20px;">
+            <div class="col-sm-12" style="margin-bottom: 20px;">
+                <span>模型时间窗口：</span>
+                <input id="look_back" style="width: 50px; height: 30px;" placeholder="1"/>
+                <span style="margin-left: 10px;">测试集数据占比：</span>
+                <input id="test_ratio" style="width: 50px; height: 30px;" placeholder="0.1"/>
+                <span style="margin-left: 10px;">训练轮次：</span>
+                <input id="train_epochs" style="width: 50px; height: 30px;" placeholder="4"/>
+                <button style="margin-left: 10px;" class="btn btn-info" id="submit">模型训练和预测</button>
+                <span id="info" style="color: red; margin-left: 20px;"></span>
+            </div>
+        </div>
+
+        <div class="row placeholders">
+            <div class="col-xs-12 placeholder" style="height:600px;" id="main">
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

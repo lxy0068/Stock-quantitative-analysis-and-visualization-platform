@@ -1,0 +1,135 @@
+﻿{% extends "layout.html" %}
+
+{% block content %}
+    <script src="../static/js/jquery.min.js" type="text/javascript" charset='utf-8'></script>
+
+    <script type="text/javascript">
+        // 初始化界面
+        $(function () {
+            $('#li_1').attr('class', '');
+            $('#li_2').attr('class', '');
+            $('#li_3').attr('class', '');
+            $('#li_4').attr('class', '');
+            $('#li_5').attr('class', '');
+
+            // 判断是否登录
+            $.get('/check_login', {},
+                function (data) {
+                    if (data['login'] === true) {
+                        $('#login_register').hide();
+                    }
+                }
+            );
+
+            $("#reg_submit").click(function () {
+                const name = $("#name").val();
+                const password = $("#password").val();
+
+                if ((name === undefined) || (password === undefined) || (name === '') || (password === '')) {
+                    alert('字段不能为空！');
+                    return
+                }
+                $.get('/register/' + name + '/' + password, {},
+                    function (data) {
+                        alert(data['info'])
+                    }
+                );
+            });
+
+            $("#login_submit").click(function () {
+                const name = $("#name").val();
+                const password = $("#password").val();
+
+                if ((name === undefined) || (password === undefined) || (name === '') || (password === '')) {
+                    alert('login_submit字段不能为空！');
+                    return
+                }
+
+                $.get('/login/' + name + '/' + password, {},
+                    function (data) {
+                        alert(data['info']);
+                        if (data['status'] === 'ok') {
+                            $('#login_register').hide();
+                        }
+                    }
+                );
+            });
+
+        });
+    </script>
+
+    <style>
+        .icon-box {
+            margin-top: 80px;
+            padding: 50px 30px;
+            position: relative;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 0 29px 0 rgb(18 66 101 / 8%);
+            transition: all 0.3s ease-in-out;
+            border-radius: 8px;
+            z-index: 1;
+        }
+
+        *, ::after, ::before {
+            box-sizing: border-box;
+        }
+    </style>
+    <div class="container" style="padding-top: 100px;">
+        <div class="row">
+            <div class="col-lg-6 pt-4 pt-lg-0 order-2 order-lg-1 d-flex flex-column justify-content-center">
+                <h3>股票数据分析与可视化系统</h3>
+                <h4 style="line-height: 1.5">利用网络爬虫技术在东方财富网采集上证指数、创业板指数等大盘指数数据及个股数据，同时抓取该公司的简介、财务指标和机构预测等数据，进行
+                    KDJ、BOLL等技术指标的计算，利用echarts进行可视化。基于LSTM算法实现股票价格预测，为投资提供可能的趋势分析。</h4>
+            </div>
+            <div class="col-lg-6 order-1 order-lg-2 hero-img">
+                <img src="/static/img/hero-img.png" style="max-width: 100%;height: auto;vertical-align: middle;">
+            </div>
+        </div>
+
+        <div class="text-center" style="padding-top: 50px;" id="login_register">
+            <span style="font-size: 18px;">用户名：</span>
+            <input id="name" style="width: 100px; height: 30px; margin-right: 5px;" type="text">
+            <span style="font-size: 18px;">密&nbsp;&nbsp;&nbsp;码：</span>
+            <input id="password" type="password" style="width: 100px; height: 30px;">
+            <button id="reg_submit" class="btn btn-info" style="width: 80px; margin-left: 10px;">注册</button>
+            <button id="login_submit" class="btn btn-success" style="width: 80px; margin-left: 5px;">登录</button>
+        </div>
+
+        <div class="row icon-boxes">
+            <div class="col-md-6 col-lg-3 d-flex align-items-stretch mb-5 mb-lg-0">
+                <div class="icon-box">
+                    <div class="icon"><i class="ri-stack-line"></i></div>
+                    <h4 class="title"><a href="">股票信息采集</a></h4>
+                    <p class="description">利用 requests 模拟请求东方财富等财经网站，抓取大盘、龙虎榜、个股财务等数据，并进行清洗和格式化。</p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 d-flex align-items-stretch mb-5 mb-lg-0">
+                <div class="icon-box">
+                    <div class="icon"><i class="ri-palette-line"></i></div>
+                    <h4 class="title"><a href="">龙虎榜分析</a></h4>
+                    <p class="description">抓取最新的龙虎榜数据，分析股票所属版块、近期涨跌和主力资金流入情况，并按照今日涨跌的排序。</p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 d-flex align-items-stretch mb-5 mb-lg-0">
+                <div class="icon-box">
+                    <div class="icon"><i class="ri-command-line"></i></div>
+                    <h4 class="title"><a href="">股票诊断分析</a></h4>
+                    <p class="description">支持股票模糊搜索、代码搜索，从技术面和基本面对股票进行诊断，并进行股票的对比分析。</p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 d-flex align-items-stretch mb-5 mb-lg-0">
+                <div class="icon-box">
+                    <div class="icon"><i class="ri-fingerprint-line"></i></div>
+                    <h4 class="title"><a href="">构建交互可视化分析平台</a></h4>
+                    <p class="description">利用Flask + Echarts 搭建可视化交互分析平台，可便捷分析股票的技术面和基本面的，及不同股票的对比情况。</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}

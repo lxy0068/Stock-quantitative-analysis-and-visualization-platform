@@ -1,0 +1,400 @@
+﻿{% extends "layout.html" %}
+
+{% block content %}
+<script src="../static/js/jquery.min.js" type="text/javascript" charset='utf-8'></script>
+<script src="../static/js/echarts.js" charset='utf-8'></script>
+<script src="../static/js/echarts-wordcloud.min.js" type="text/javascript" charset='utf-8'></script>
+
+<script type="text/javascript">
+    // 初始化界面
+    $(function () {
+        $('#li_1').attr('class', '');
+        $('#li_2').attr('class', '');
+        $('#li_3').attr('class', '');
+        $('#li_4').attr('class', 'active');
+
+        // 判断是否登录
+        $.get('http://127.0.0.1:5000/check_login', {},
+            function (data) {
+                console.log(data);
+                if (data['login'] === false) {
+                    window.location.href = '/'
+                }
+            }
+        );
+        
+        $("#submit_search").click(function () {
+            $('#main4').html("")
+            $('#main5').html("")
+            const search_input1 = $("#search_input1").val();
+            $.get('http://127.0.0.1:5000/stock_diagnosis/' + search_input1, {},
+                function (data) {
+                    var kline_data = data['kline_data']
+
+                    var dom = document.getElementById("main1");
+                    var myChart = echarts.init(dom);
+
+                    var upColor = '#ec0000';
+                    var upBorderColor = '#8A0000';
+                    var downColor = '#00da3c';
+                    var downBorderColor = '#008F28';
+
+                    // 数据意义：开盘(open)，收盘(close)，最低(lowest)，最高(highest)
+                    var data0 = splitData(kline_data);
+
+                    function splitData(rawData) {
+                        var categoryData = [];
+                        var values = []
+                        for (var i = 0; i < rawData.length; i++) {
+                            categoryData.push(rawData[i].splice(0, 1)[0]);
+                            values.push(rawData[i])
+                        }
+                        return {
+                            categoryData: categoryData,
+                            values: values
+                        };
+                    }
+
+                    var option = {
+                        title: {
+                            text: data['name'],
+                            left: 'center'
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                animation: false
+                            }
+                        },
+                        legend: {
+                            data: ['日K', 'BOLL-UPPER', 'BOLL-MIDDLE', 'BOLL-LOWER'],
+                            top:"6%"
+                        },
+                        axisPointer: {
+                            link: {xAxisIndex: 'all'}
+                        },
+                        dataZoom: [
+                            {
+                                show: true,
+                                realtime: true,
+                                start: 0,
+                                end: 100,
+                                xAxisIndex: [0]
+                            },
+                        ],
+                        grid: [{
+                            left: 20,
+                            right: 0,
+                            height: '78%'
+                        }],
+                        xAxis: [{
+                            gridIndex: 0,
+                            type: 'category',
+                            data: data0.categoryData,
+                            scale: true,
+                            boundaryGap: false,
+                            axisLine: {onZero: false},
+                            splitLine: {show: false},
+                            splitNumber: 20,
+                        }],
+                        yAxis: [{
+                            name: '股价',
+                            scale: true,
+                            gridIndex: 0,
+                            splitArea: {
+                                show: true
+                            },
+                        }],
+                        series: [
+                            {
+                                name: '日K',
+                                type: 'candlestick',
+                                data: data0.values,
+                                xAxisIndex: 0,
+                                yAxisIndex: 0,
+                                itemStyle: {
+                                    color: upColor,
+                                    color0: downColor,
+                                    borderColor: upBorderColor,
+                                    borderColor0: downBorderColor
+                                },
+                            },
+                            {
+                                name: 'BOLL-UPPER',
+                                type: 'line',
+                                data: data['boll_data']['UPPER'],
+                                xAxisIndex: 0,
+                                yAxisIndex: 0,
+                                symbol: 'none',  //取消折点圆圈
+                                smooth: true,
+                                lineStyle: {
+                                    opacity: 0.5
+                                }
+                            },
+                            {
+                                name: 'BOLL-MIDDLE',
+                                type: 'line',
+                                data: data['boll_data']['MIDDLE'],
+                                xAxisIndex: 0,
+                                yAxisIndex: 0,
+                                symbol: 'none',  //取消折点圆圈
+                                smooth: true,
+                                lineStyle: {
+                                    opacity: 0.5
+                                }
+                            },
+                            {
+                                name: 'BOLL-LOWER',
+                                type: 'line',
+                                data: data['boll_data']['LOWER'],
+                                xAxisIndex: 0,
+                                yAxisIndex: 0,
+                                symbol: 'none',  //取消折点圆圈
+                                smooth: true,
+                                lineStyle: {
+                                    opacity: 0.5
+                                }
+                            }
+                        ]
+                    };
+                    if (option && typeof option === "object") {
+                        myChart.setOption(option, true);
+                    }
+                }
+            );
+
+            $.get('http://127.0.0.1:5000/query_jibenmian_info/' + search_input1, {},
+                function (data) {
+                    // 主要技术指标
+                    var zyzb_table = data['zyzb_table']
+                    $('#main4').append('<h3>主要财务指标</h3><hr/>')
+                    $('#main4').append(zyzb_table)
+
+                    $('#main5').append('<h3>机构预测</h3><hr/>')
+                    var jgyc_table = data['jgyc_table']
+                    $('#main5').append(jgyc_table)
+                    
+                }
+            );
+
+            $('#main7').html("")
+            $('#main8').html("")
+            const search_input2 = $("#search_input2").val();
+            $.get('http://127.0.0.1:5000/stock_diagnosis/' + search_input2, {},
+                function (data) {
+                    var kline_data = data['kline_data']
+
+                    var dom = document.getElementById("main6");
+                    var myChart = echarts.init(dom);
+
+                    var upColor = '#ec0000';
+                    var upBorderColor = '#8A0000';
+                    var downColor = '#00da3c';
+                    var downBorderColor = '#008F28';
+
+                    // 数据意义：开盘(open)，收盘(close)，最低(lowest)，最高(highest)
+                    var data0 = splitData(kline_data);
+
+                    function splitData(rawData) {
+                        var categoryData = [];
+                        var values = []
+                        for (var i = 0; i < rawData.length; i++) {
+                            categoryData.push(rawData[i].splice(0, 1)[0]);
+                            values.push(rawData[i])
+                        }
+                        return {
+                            categoryData: categoryData,
+                            values: values
+                        };
+                    }
+
+                    var option = {
+                        title: {
+                            text: data['name'],
+                            left: 'center'
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                animation: false
+                            }
+                        },
+                        legend: {
+                            data: ['日K', 'BOLL-UPPER', 'BOLL-MIDDLE', 'BOLL-LOWER'],
+                            top:"6%"
+                        },
+                        axisPointer: {
+                            link: {xAxisIndex: 'all'}
+                        },
+                        dataZoom: [
+                            {
+                                show: true,
+                                realtime: true,
+                                start: 0,
+                                end: 100,
+                                xAxisIndex: [0]
+                            },
+                        ],
+                        grid: [{
+                            left: 20,
+                            right: 0,
+                            height: '78%'
+                        }],
+                        xAxis: [{
+                            gridIndex: 0,
+                            type: 'category',
+                            data: data0.categoryData,
+                            scale: true,
+                            boundaryGap: false,
+                            axisLine: {onZero: false},
+                            splitLine: {show: false},
+                            splitNumber: 20,
+                        }],
+                        yAxis: [{
+                            name: '股价',
+                            scale: true,
+                            gridIndex: 0,
+                            splitArea: {
+                                show: true
+                            },
+                        }],
+                        series: [
+                            {
+                                name: '日K',
+                                type: 'candlestick',
+                                data: data0.values,
+                                xAxisIndex: 0,
+                                yAxisIndex: 0,
+                                itemStyle: {
+                                    color: upColor,
+                                    color0: downColor,
+                                    borderColor: upBorderColor,
+                                    borderColor0: downBorderColor
+                                },
+                            },
+                            {
+                                name: 'BOLL-UPPER',
+                                type: 'line',
+                                data: data['boll_data']['UPPER'],
+                                xAxisIndex: 0,
+                                yAxisIndex: 0,
+                                symbol: 'none',  //取消折点圆圈
+                                smooth: true,
+                                lineStyle: {
+                                    opacity: 0.5
+                                }
+                            },
+                            {
+                                name: 'BOLL-MIDDLE',
+                                type: 'line',
+                                data: data['boll_data']['MIDDLE'],
+                                xAxisIndex: 0,
+                                yAxisIndex: 0,
+                                symbol: 'none',  //取消折点圆圈
+                                smooth: true,
+                                lineStyle: {
+                                    opacity: 0.5
+                                }
+                            },
+                            {
+                                name: 'BOLL-LOWER',
+                                type: 'line',
+                                data: data['boll_data']['LOWER'],
+                                xAxisIndex: 0,
+                                yAxisIndex: 0,
+                                symbol: 'none',  //取消折点圆圈
+                                smooth: true,
+                                lineStyle: {
+                                    opacity: 0.5
+                                }
+                            }
+                        ]
+                    };
+                    if (option && typeof option === "object") {
+                        myChart.setOption(option, true);
+                    }
+                }
+            );
+
+            $.get('http://127.0.0.1:5000/query_jibenmian_info/' + search_input2, {},
+                function (data) {
+                    // 主要技术指标
+                    var zyzb_table = data['zyzb_table']
+                    $('#main7').append('<h3>主要财务指标</h3><hr/>')
+                    $('#main7').append(zyzb_table)
+
+                    $('#main8').append('<h3>机构预测</h3><hr/>')
+                    var jgyc_table = data['jgyc_table']
+                    $('#main8').append(jgyc_table)
+                }
+            );
+
+        });
+
+    });
+
+</script>
+
+
+<div style="margin-left: 20px; margin-right: 20px; margin-top: 50px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3"></div>
+            <div class="col-lg-6"><img src="../static/img/search.jpeg"></div>
+            <div class="col-lg-1"></div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4"></div>
+            <div class="col-lg-6"><h3>基于技术面和基本面的股票对比分析</h3></div>
+            <div class="col-lg-1"></div>
+        </div>
+        <div class="row" style="margin-top: 40px;">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-10">
+
+                <p><span>股票1：</span><input id="search_input1" type="text">
+                <span>股票2：</span><input id="search_input2" type="text">
+                <button id="submit_search" class="btn btn-primary">提交分析</button>
+            </p>
+            </div>
+
+
+        </div>
+    </div>
+
+    <div class="row" style="margin-top: 20px;">
+        <div class="col-xs-6 placeholder">
+            <div class="row placeholders" style="margin-top: 20px;">
+                <div class="col-xs-12 placeholder" style="height:400px;" id="main1"></div>
+            </div>
+
+            <div class="row placeholders" style="margin-top: 20px;">
+                <div class="col-xs-12 placeholder" style="height:400px;" id="main4"></div>
+            </div>
+
+            <div class="row placeholders" style="margin-top: 20px;">
+                <div class="col-xs-12 placeholder" style="height:400px;" id="main5"></div>
+            </div>
+
+        </div>
+
+        <div class="col-xs-6 placeholder">
+            <div class="row placeholders" style="margin-top: 20px;">
+                <div class="col-xs-12 placeholder" style="height:400px;" id="main6"></div>
+            </div>
+
+            <div class="row placeholders" style="margin-top: 20px;">
+                <div class="col-xs-12 placeholder" style="height:400px;" id="main7"></div>
+            </div>
+
+            <div class="row placeholders" style="margin-top: 20px;">
+                <div class="col-xs-12 placeholder" style="height:400px;" id="main8"></div>
+            </div>
+
+        </div>
+    </div>
+
+
+</div>
+
+{% endblock %}

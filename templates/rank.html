@@ -1,0 +1,59 @@
+﻿{% extends "layout.html" %}
+
+{% block content %}
+<script src="../static/js/jquery.min.js" type="text/javascript" charset='utf-8'></script>
+<script src="../static/js/echarts.js" charset='utf-8'></script>
+<script src="../static/js/echarts-wordcloud.min.js" type="text/javascript" charset='utf-8'></script>
+
+<script type="text/javascript">
+    // 初始化界面
+    $(function () {
+        $('#li_1').attr('class', '');
+        $('#li_2').attr('class', 'active');
+        $('#li_3').attr('class', '');
+
+        // 判断是否登录
+        $.get('http://127.0.0.1:5000/check_login', {},
+            function (data) {
+                console.log(data);
+                if (data['login'] === false) {
+                    window.location.href = '/'
+                } else {
+                    $.get('http://127.0.0.1:5000/stock_rank', {},
+                        function (data) {
+                            $('#tbody').append(data)
+                        }
+                    );
+                }
+            }
+        );
+
+    });
+</script>
+
+<div class="" style="margin-top: 80px; margin-left: 80px; margin-right: 80px;">
+
+    <h3 class="page-header">最新资金热点方向</h3>
+    <div class="row">
+        <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>排名</th>
+                <th>今日涨跌%</th>
+                <th>股票代码</th>
+                <th>股票名称</th>
+                <th>所属版块</th>
+                <th>5日涨跌%</th>
+                <th>5日主力净占比</th>
+                <th>10日主力净占比</th>
+                <th>今日主力净占比</th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+            </tbody>
+          </table>
+    </div>
+
+</div>
+
+{% endblock %}

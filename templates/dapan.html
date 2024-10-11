@@ -1,0 +1,211 @@
+﻿{% extends "layout.html" %}
+
+{% block content %}
+    <script src="../static/js/jquery.min.js" type="text/javascript" charset='utf-8'></script>
+    <script src="../static/js/echarts.js" charset='utf-8'></script>
+    <script src="../static/js/echarts-wordcloud.min.js" type="text/javascript" charset='utf-8'></script>
+
+    <script type="text/javascript">
+        // 初始化界面
+        $(function () {
+            $('#li_1').attr('class', 'active');
+            $('#li_2').attr('class', '');
+            $('#li_3').attr('class', '');
+            $('#li_4').attr('class', '');
+            $('#li_5').attr('class', '');
+
+            // 判断是否登录
+            $.get('http://127.0.0.1:5000/check_login', {},
+                function (data) {
+                    console.log(data);
+                    if (data['login'] === false) {
+                        window.location.href = '/'
+                    }
+                }
+            );
+
+            $('#myTab').find("li").each(function () {
+                $(this).click(function () {
+                    $('#echarts_content').empty();
+                    const index = $(this).text();
+
+                    $('#echarts_content').append(
+                        '<div class="row placeholders">' +
+                        '<div class="col-xs-12 placeholder" style="height:550px;" id="main1"></div>' +
+                        '</div>'
+                    );
+
+                    $.get('http://127.0.0.1:5000/stock_diagnosis/' + index, {},
+                        function (data) {
+                            var kline_data = data['kline_data']
+                            console.log(data['boll_data'])
+
+                            var dom = document.getElementById("main1");
+                            console.log(dom)
+                            var myChart = echarts.init(dom);
+
+                            var upColor = '#ec0000';
+                            var upBorderColor = '#8A0000';
+                            var downColor = '#00da3c';
+                            var downBorderColor = '#008F28';
+
+                            // 数据意义：开盘(open)，收盘(close)，最低(lowest)，最高(highest)
+                            var data0 = splitData(kline_data);
+
+                            function splitData(rawData) {
+                                var categoryData = [];
+                                var values = []
+                                for (var i = 0; i < rawData.length; i++) {
+                                    categoryData.push(rawData[i].splice(0, 1)[0]);
+                                    values.push(rawData[i])
+                                }
+                                return {
+                                    categoryData: categoryData,
+                                    values: values
+                                };
+                            }
+
+                            var option = {
+                                backgroundColor: '#F9F9F9',
+                                title: {
+                                    left: 'center',
+                                    text: index + '历史 K 线走势',
+                                },
+                                legend: {
+                                    data: ['日K', 'BOLL-UPPER', 'BOLL-MIDDLE', 'BOLL-LOWER'],
+                                    show: true,
+                                    top: "6%"
+                                },
+                                toolbox: {
+                                    feature: {
+                                        dataZoom: {
+                                            yAxisIndex: 'none'
+                                        },
+                                        restore: {},
+                                        saveAsImage: {}
+                                    }
+                                },
+                                tooltip: {
+                                    trigger: 'axis',
+                                    axisPointer: {
+                                        animation: false
+                                    }
+                                },
+                                axisPointer: {
+                                    link: {xAxisIndex: 'all'}
+                                },
+                                dataZoom: [
+                                    {
+                                        show: true,
+                                        realtime: true,
+                                        start: 0,
+                                        end: 100,
+                                        xAxisIndex: [0]
+                                    },
+                                ],
+                                grid: [{
+                                    left: 50,
+                                    right: 50,
+                                    height: '78%'
+                                }],
+                                xAxis: [{
+                                    gridIndex: 0,
+                                    type: 'category',
+                                    data: data0.categoryData,
+                                    scale: true,
+                                    boundaryGap: false,
+                                    axisLine: {onZero: false},
+                                    splitLine: {show: false},
+                                    splitNumber: 20,
+                                }],
+                                yAxis: [{
+                                    name: '股价',
+                                    scale: true,
+                                    gridIndex: 0,
+                                    splitArea: {
+                                        show: true
+                                    },
+                                }],
+                                series: [
+                                    {
+                                        name: '日K',
+                                        type: 'candlestick',
+                                        data: data0.values,
+                                        xAxisIndex: 0,
+                                        yAxisIndex: 0,
+                                        itemStyle: {
+                                            color: upColor,
+                                            color0: downColor,
+                                            borderColor: upBorderColor,
+                                            borderColor0: downBorderColor
+                                        },
+                                    },
+                                    {
+                                        name: 'BOLL-UPPER',
+                                        type: 'line',
+                                        data: data['boll_data']['UPPER'],
+                                        xAxisIndex: 0,
+                                        yAxisIndex: 0,
+                                        symbol: 'none',  //取消折点圆圈
+                                        smooth: true,
+                                        lineStyle: {
+                                            opacity: 0.5
+                                        }
+                                    },
+                                    {
+                                        name: 'BOLL-MIDDLE',
+                                        type: 'line',
+                                        data: data['boll_data']['MIDDLE'],
+                                        xAxisIndex: 0,
+                                        yAxisIndex: 0,
+                                        symbol: 'none',  //取消折点圆圈
+                                        smooth: true,
+                                        lineStyle: {
+                                            opacity: 0.5
+                                        }
+                                    },
+                                    {
+                                        name: 'BOLL-LOWER',
+                                        type: 'line',
+                                        data: data['boll_data']['LOWER'],
+                                        xAxisIndex: 0,
+                                        yAxisIndex: 0,
+                                        symbol: 'none',  //取消折点圆圈
+                                        smooth: true,
+                                        lineStyle: {
+                                            opacity: 0.5
+                                        }
+                                    }
+                                ]
+                            };
+                            if (option && typeof option === "object") {
+                                myChart.setOption(option, true);
+                            }
+                        }
+                    );
+
+                })
+            });
+            $('#first').click();
+
+        });
+    </script>
+
+    <div class="" style="margin-top: 80px; margin-left: 80px; margin-right: 80px;">
+
+        <ul id="myTab" class="nav nav-tabs">
+            <li class="active" id="first"><a id="上证指数" data-toggle="tab"><b>上证指数</b></a></li>
+            <li class="is_numerical"><a id="深证成指" data-toggle="tab"><b>深证成指</b></a></li>
+            <li><a id="创业板指" data-toggle="tab"><b>创业板指</b></a></li>
+            <li><a id="中小板指" data-toggle="tab"><b>中小板指</b></a></li>
+            <li><a id="沪深300" data-toggle="tab"><b>沪深300</b></a></li>
+        </ul>
+
+        <div class="row" style="margin-top: 40px;">
+            <div class=" col-xs-12placeholder" style="height:600px; width: 100%;" id="main1">
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}

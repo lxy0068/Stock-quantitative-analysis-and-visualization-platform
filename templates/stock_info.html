@@ -1,0 +1,381 @@
+﻿{% extends "layout.html" %}
+
+{% block content %}
+    <script src="../static/js/jquery.min.js" type="text/javascript" charset='utf-8'></script>
+    <script src="../static/js/echarts.js" charset='utf-8'></script>
+    <script src="../static/js/echarts-wordcloud.min.js" type="text/javascript" charset='utf-8'></script>
+
+    <script type="text/javascript">
+        // 初始化界面
+        $(function () {
+            $('#li_1').attr('class', '');
+            $('#li_3').attr('class', 'active');
+
+            // 判断是否登录
+            $.get('http://127.0.0.1:5000/check_login', {},
+                function (data) {
+                    console.log(data);
+                    if (data['login'] === false) {
+                        window.location.href = '/'
+                    }
+                }
+            );
+
+            //获取所有自选股
+            $.get('http://127.0.0.1:5000/get_all_self_selection', {},
+                function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        $('#self_select').append('<button type="button" style="text-align: left" class="btn btn-default" onclick=button_click_search("' + data[i] + '")>' + data[i] + '</button>');
+                    }
+                }
+            );
+
+            $("#submit_search").click(function () {
+                $("#add_select").empty();
+                $("#gsjj").empty();
+                $("#main4").html("");
+                $("#main5").html("");
+                const search_input = $("#search_input").val();
+                $.get('http://127.0.0.1:5000/stock_diagnosis/' + search_input, {},
+                    function (data) {
+                        var kline_data = data['kline_data']
+
+                        {#$("#add_select").append("<h4>" + data['name'] + "<button class='btn btn-info' onclick=add_self_select() style='padding-left:10px;'>添加自选</button></h4> ");#}
+                        $("#add_select").append("<h4>" + data['name'] + "</h4> ");
+
+                        var dom = document.getElementById("main1");
+                        var myChart = echarts.init(dom);
+
+                        var upColor = '#ec0000';
+                        var upBorderColor = '#8A0000';
+                        var downColor = '#00da3c';
+                        var downBorderColor = '#008F28';
+
+                        // 数据意义：开盘(open)，收盘(close)，最低(lowest)，最高(highest)
+                        var data0 = splitData(kline_data);
+
+                        function splitData(rawData) {
+                            var categoryData = [];
+                            var values = []
+                            for (var i = 0; i < rawData.length; i++) {
+                                categoryData.push(rawData[i].splice(0, 1)[0]);
+                                values.push(rawData[i])
+                            }
+                            return {
+                                categoryData: categoryData,
+                                values: values
+                            };
+                        }
+
+                        var option = {
+                            tooltip: {
+                                trigger: 'axis',
+                                axisPointer: {
+                                    animation: false
+                                }
+                            },
+                            legend: {
+                                data: ['日K', 'BOLL-UPPER', 'BOLL-MIDDLE', 'BOLL-LOWER']
+                            },
+                            axisPointer: {
+                                link: {xAxisIndex: 'all'}
+                            },
+                            dataZoom: [
+                                {
+                                    show: true,
+                                    realtime: true,
+                                    start: 0,
+                                    end: 100,
+                                    xAxisIndex: [0]
+                                },
+                            ],
+                            grid: [{
+                                left: 50,
+                                right: 50,
+                                height: '78%'
+                            }],
+                            xAxis: [{
+                                gridIndex: 0,
+                                type: 'category',
+                                data: data0.categoryData,
+                                scale: true,
+                                boundaryGap: false,
+                                axisLine: {onZero: false},
+                                splitLine: {show: false},
+                                splitNumber: 20,
+                            }],
+                            yAxis: [{
+                                name: '股价',
+                                scale: true,
+                                gridIndex: 0,
+                                splitArea: {
+                                    show: true
+                                },
+                            }],
+                            series: [
+                                {
+                                    name: '日K',
+                                    type: 'candlestick',
+                                    data: data0.values,
+                                    xAxisIndex: 0,
+                                    yAxisIndex: 0,
+                                    itemStyle: {
+                                        color: upColor,
+                                        color0: downColor,
+                                        borderColor: upBorderColor,
+                                        borderColor0: downBorderColor
+                                    },
+                                },
+                                {
+                                    name: 'BOLL-UPPER',
+                                    type: 'line',
+                                    data: data['boll_data']['UPPER'],
+                                    xAxisIndex: 0,
+                                    yAxisIndex: 0,
+                                    symbol: 'none',  //取消折点圆圈
+                                    smooth: true,
+                                    lineStyle: {
+                                        opacity: 0.5
+                                    }
+                                },
+                                {
+                                    name: 'BOLL-MIDDLE',
+                                    type: 'line',
+                                    data: data['boll_data']['MIDDLE'],
+                                    xAxisIndex: 0,
+                                    yAxisIndex: 0,
+                                    symbol: 'none',  //取消折点圆圈
+                                    smooth: true,
+                                    lineStyle: {
+                                        opacity: 0.5
+                                    }
+                                },
+                                {
+                                    name: 'BOLL-LOWER',
+                                    type: 'line',
+                                    data: data['boll_data']['LOWER'],
+                                    xAxisIndex: 0,
+                                    yAxisIndex: 0,
+                                    symbol: 'none',  //取消折点圆圈
+                                    smooth: true,
+                                    lineStyle: {
+                                        opacity: 0.5
+                                    }
+                                }
+                            ]
+                        };
+                        if (option && typeof option === "object") {
+                            myChart.setOption(option, true);
+                        }
+
+                        var dom = document.getElementById("main3");
+                        var myChart = echarts.init(dom);
+                        var option = {}
+                        console.log(data)
+                        var series_datas = []
+
+                        for (var i = 0; i < data['kdj名称'].length; i++) {
+                            series_datas.push({
+                                name: data['kdj名称'][i],
+                                data: data['kdj数值'][i],
+                                type: 'line',
+                                smooth: true
+                            })
+                        }
+
+                        option = {
+                            title: {
+                                text: 'KDJ指标',
+                                left: 0
+                            },
+                            tooltip: {
+                                trigger: 'axis',
+                                axisPointer: {
+                                    animation: false
+                                }
+                            },
+                            axisPointer: {
+                                link: {xAxisIndex: 'all'}
+                            },
+                            grid: [{
+                                left: 50,
+                                right: 50,
+                                height: '78%'
+                            }],
+                            xAxis: [{
+                                gridIndex: 0,
+                                type: 'category',
+                                data: data['date'],
+                                scale: true,
+                                boundaryGap: false,
+                                axisLine: {onZero: false},
+                                splitLine: {show: false},
+                                splitNumber: 20,
+                            }],
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: series_datas
+                        };
+                        if (option && typeof option === "object") {
+                            myChart.setOption(option, true);
+                        }
+
+                        var dom = document.getElementById("main50");
+                        var myChart = echarts.init(dom);
+                        var option = {}
+                        console.log(data)
+                        var series_datas = []
+
+                        for (var i = 0; i < data['macd名称'].length; i++) {
+                            series_datas.push({
+                                name: data['macd名称'][i],
+                                data: data['mcad数值'][i],
+                                type: 'line',
+                                smooth: true
+                            })
+                        }
+
+                        option = {
+                            title: {
+                                text: 'MACD指标',
+                                left: 0
+                            },
+                            tooltip: {
+                                trigger: 'axis',
+                                axisPointer: {
+                                    animation: false
+                                }
+                            },
+                            axisPointer: {
+                                link: {xAxisIndex: 'all'}
+                            },
+                            grid: [{
+                                left: 50,
+                                right: 50,
+                                height: '78%'
+                            }],
+                            xAxis: [{
+                                gridIndex: 0,
+                                type: 'category',
+                                data: data['date'],
+                                scale: true,
+                                boundaryGap: false,
+                                axisLine: {onZero: false},
+                                splitLine: {show: false},
+                                splitNumber: 20,
+                            }],
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: series_datas
+                        };
+                        if (option && typeof option === "object") {
+                            myChart.setOption(option, true);
+                        }
+                    }
+                );
+
+                $.get('http://127.0.0.1:5000/query_jibenmian_info/' + search_input, {},
+                    function (data) {
+                        // 主要技术指标
+                        var zyzb_table = data['zyzb_table']
+                        $('#main4').append('<h3>主要财务指标</h3><hr/>')
+                        $('#main4').append(zyzb_table)
+
+                        $('#main5').append('<h3>机构预测</h3><hr/>')
+                        var jgyc_table = data['jgyc_table']
+                        $('#main5').append(jgyc_table)
+
+                        $('#gsjj').append('<h3>' + data['gsmc'] + '</h3>')
+                        $('#gsjj').append('<p>' + data['gsjj'] + '</p>')
+                    }
+                );
+
+            });
+
+        });
+
+        function button_click_search(stock_code) {
+            $('#search_input').val(stock_code);
+            $("#submit_search").click();
+        }
+
+        function add_self_select() {
+            const search_input = $("#search_input").val();
+
+            $.get('http://127.0.0.1:5000/add_self_selection/' + search_input, {},
+                function (data) {
+                    if (data['new']) {
+                        $('#self_select').append('<button type="button" style="text-align: left" class="btn btn-default" onclick=button_click_search("' + data['name'] + '")>' + data['name'] + '</button>');
+                    }
+                }
+            );
+        }
+    </script>
+
+    <div style="margin-left: 40px; margin-right: 40px; margin-top: 50px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3"></div>
+                <div class="col-lg-6"><img src="../static/img/search.jpeg"></div>
+                <div class="col-lg-1"></div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4"></div>
+                <div class="col-lg-6"><h3>股票技术面和基本面诊断系统</h3></div>
+                <div class="col-lg-1"></div>
+            </div>
+            <div class="row" style="margin-top: 10px;">
+                <div class="col-lg-2"></div>
+                <div class="col-lg-7">
+                    <div class="form-inline input-group">
+                        <!--UTF-8编码-->
+                        <input name=ie type=HIDDEN value=utf-8/>
+                        <input name=tn type=HIDDEN value=baidu/>
+                        <span class="input-group-btn">
+                        <input id="search_input" type="text" class="form-control" placeholder="请输入股票名称或代码" name="word"
+                               size="30" baiduSug="1" style="width:90%;">
+                    <button id="submit_search" class="btn btn-primary">提交分析</button>
+                </span>
+                    </div>
+                </div>
+                <div class="col-lg-3"></div>
+                <script charset="gbk" src="http://www.baidu.com/js/opensug.js"></script>
+                <!--JQuery JS依赖-->
+                <script src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
+                <!--Bootstrap JS依赖-->
+                <script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+            </div>
+        </div>
+
+
+        <div class="row" style="margin-top: 10px;">
+            <div class="col-xs-12">
+                <div id="add_select">
+                </div>
+
+                <div class="row placeholders" style="margin-top: 20px;">
+                    <div class="col-xs-12 placeholder" style="height:400px;" id="main1"></div>
+                </div>
+
+                <div class="row placeholders" style="margin-top: 20px;">
+                    <div class="col-xs-12 placeholder" style="height:200px;" id="main3"></div>
+                </div>
+                <div class="row placeholders" style="margin-top: 20px;">
+                    <div class="col-xs-12 placeholder" style="height:200px;" id="main50"></div>
+                </div>
+
+                <div class="row placeholders" style="margin-top: 20px; margin-left: 20px; margin-right: 20px;"
+                     id="gsjj">
+                </div>
+                <div style="margin-left: 20px; margin-right: 10px; margin-bottom: 10px;">
+                    <div class="row placeholders" style="margin-top: 0px;">
+                        <div class="col-xs-6 placeholder" id="main4"></div>
+                        <div class="col-xs-6 placeholder" id="main5"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
