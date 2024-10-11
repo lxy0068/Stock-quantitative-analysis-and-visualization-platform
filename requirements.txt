@@ -1,0 +1,7 @@
+pandas==1.5.3
+numpy<2 
+requests==2.27.1
+flask
+tensorflow==2.11.0
+scikit-learn
+tqdm
