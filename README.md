@@ -141,7 +141,7 @@ stock-analysis-system/
 ├── analysis_util.py         # Utility functions for data analysis
 ├── util.py                  # General utility functions
 ├── config.py                # Configuration settings
-├── stock_data_crawler.py     # Script for web crawling stock data
+├── stock_data_crawler.py    # Script for web crawling stock data
 ├── app.py                   # Flask application for the web server
 ├── service/                 # Backend service modules
 │   ├── east_money_service.py
